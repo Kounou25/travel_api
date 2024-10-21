@@ -1,14 +1,99 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  password     String
+  phoneNumber  String?  @map("phone_number")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+  feedbacks    Feedback[]
+  bookings     Booking[]
+
+  @@map("users")
+}
+
+model Company {
+  id          Int      @id @default(autoincrement())
+  name        String
+  address     String?
+  phoneNumber String?  @map("phone_number")
+  email       String?
+  logo        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  routes      Route[]
+  feedbacks   Feedback[]
+
+  @@map("companies")
+}
+
+model Route {
+  id            Int      @id @default(autoincrement())
+  companyId     Int      @map("company_id")
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  origin        String
+  destination   String
+  departureTime DateTime @map("departure_time")
+  arrivalTime   DateTime @map("arrival_time")
+  price         Float
+  seatsAvailable Int     @map("seats_available")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+  bookings      Booking[]
+
+  @@map("routes")
+}
+
+model Booking {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routeId     Int      @map("route_id")
+  route       Route    @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  seatNumber  String   @map("seat_number")
+  bookingDate DateTime @default(now()) @map("booking_date")
+  status      String   @default("reserved") @map("status")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  payments    Payment[]
+
+  @@map("bookings")
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  bookingId     Int      @map("booking_id")
+  booking       Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  amount        Float
+  paymentMethod String   @map("payment_method")
+  paymentDate   DateTime @default(now()) @map("payment_date")
+  status        String   @map("status")
+  transactionId String?  @map("transaction_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("payments")
+}
+
+model Feedback {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId  Int      @map("company_id")
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("feedbacks")
 }
