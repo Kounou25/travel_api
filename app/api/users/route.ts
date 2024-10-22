@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
 const prisma = new PrismaClient();
 
 // Lecture des données avec la méthode GET
-export async function GET(request: Request) {
+export async function GET() {
   try {
     // Récupérer les données de la table users
     const users = await prisma.user.findMany();
